@@ -6,14 +6,14 @@
 
 Публичный сайт: **https://winchestersdc79-hub.github.io/onda-studio/**
 
-После успешного завершения workflow GitHub Actions сайт будет доступен по этому адресу. Публикация выполняется из ветки `main` автоматически.
+GitHub Pages активирован. Сайт опубликован и доступен по этому адресу; публикация обновляется автоматически после отправки изменений в ветку `main`.
 
-### Включение GitHub Pages
+### Статус публикации
 
-1. Откройте [Settings → Pages](https://github.com/winchestersdc79-hub/onda-studio/settings/pages).
-2. В разделе **Build and deployment** выберите **Deploy from a branch / GitHub Actions** (если предложено, оставьте источник **GitHub Actions**).
-3. Откройте [Actions](https://github.com/winchestersdc79-hub/onda-studio/actions) и дождитесь успешного workflow **Build and deploy to GitHub Pages**.
-4. Проверьте адрес: https://winchestersdc79-hub.github.io/onda-studio/.
+- GitHub Pages: включён, источник **GitHub Actions**.
+- Workflow: [Build and deploy to GitHub Pages](https://github.com/winchestersdc79-hub/onda-studio/actions).
+- Репозиторий: [winchestersdc79-hub/onda-studio](https://github.com/winchestersdc79-hub/onda-studio).
+- Проверенный адрес: https://winchestersdc79-hub.github.io/onda-studio/.
 
 Workflow `.github/workflows/deploy.yml` проверяет TypeScript, собирает сайт, формирует sitemap с адресом репозитория и публикует `dist/`. Для URL репозитория автоматически учитывается базовый путь `/onda-studio/`.
 
