@@ -5,7 +5,7 @@ import App from './App'
 import './styles.css'
 
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '')
-if (sessionStorage.redirect) {
+if (typeof window !== 'undefined' && sessionStorage.redirect) {
   const redirected = sessionStorage.redirect as string
   delete sessionStorage.redirect
   const pathname = new URL(redirected).pathname
