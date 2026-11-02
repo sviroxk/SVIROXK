@@ -6,7 +6,7 @@ const repository = environment.GITHUB_REPOSITORY
 const [owner, repositoryName] = repository?.split('/') ?? []
 const isUserSite = repositoryName?.endsWith('.github.io')
 const base = environment.GITHUB_ACTIONS === 'true' && repositoryName && !isUserSite
-  ? `/${repositoryName.toLowerCase()}/`
+  ? `/${repositoryName}/`
   : '/'
 
 export default defineConfig({
