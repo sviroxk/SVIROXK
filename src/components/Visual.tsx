@@ -52,6 +52,20 @@ export function StyleCard({ item, index = 0 }: { item: Style; index?: number }) 
  return <motion.article className={`style-card card-${item.className}`} initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.15}} transition={{duration:.5,delay:(index%3)*.06}}><Link to={`/styles/${item.slug}`} className="card-link"><StyleArt item={item} compact/><div className="style-card-info"><div><span className="eyebrow">{item.category} · {item.eyebrow.split('/')[0]}</span><h3>{item.name}</h3></div><span className="circle-arrow"><ArrowUpRight size={17}/></span></div></Link></motion.article>
 }
 
+export function ProjectArtwork({ slug, compact = false }: { slug: string; compact?: boolean }) {
+ const labels: Record<string, string> = { morrow:'MORROW / botanical light study', objects:'OBJECTS / kinetic still life', after:'AFTER HOURS / live frequency', form:'FORM / architectural study', tinyworlds:'TINY WORLDS / soft landscape', still:'STILL / prismatic product study' }
+ return <div className={`project-art scene-${slug} ${compact ? 'scene-compact' : ''}`} role="img" aria-label={labels[slug] ?? 'ONDA original digital art direction'}>
+  <div className="scene-grid"/><div className="scene-noise"/>
+  {slug === 'morrow' && <div className="morrow-world"><i/><b/><span/></div>}
+  {slug === 'objects' && <div className="objects-world"><i/><b/><span/><em/></div>}
+  {slug === 'after' && <div className="after-world"><i/>{Array.from({length:37},(_,i)=><b key={i} style={{'--bar':`${18 + Math.abs(Math.sin(i*.59))*78}%`,'--n':i} as CSSProperties}/>) }<span>23:48 ━━━●━━ ◀ Ⅱ ▶</span></div>}
+  {slug === 'form' && <div className="form-world"><i/><b/><span/><em/><small>SECTION 01 / SCALE 1:100</small></div>}
+  {slug === 'tinyworlds' && <div className="tiny-world"><i/><b/><span/><em/><small/></div>}
+  {slug === 'still' && <div className="still-world"><i/><b/><span/><em/></div>}
+  <span className="scene-index">ONDA / 0{Math.max(1, ['morrow','objects','after','form','tinyworlds','still'].indexOf(slug)+1)}</span>
+ </div>
+}
+
 export function ProjectCard({ project, index = 0 }: { project: Project; index?: number }) {
- return <motion.article className={`project-card project-${project.tone}`} initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.12}} transition={{duration:.55,delay:(index%2)*.08}}><Link to={`/work/${project.slug}`} className="project-link"><div className="project-image"><img src={`https://images.unsplash.com/${project.image}?auto=format&fit=crop&w=1400&q=82`} loading="lazy" alt={`Визуальная концепция проекта ${project.title}`}/><span className="project-open"><MoveUpRight size={19}/></span><span className="concept-tag">Concept study · 2025</span></div><div className="project-copy"><div><span className="eyebrow">{project.category} / {project.style}</span><h3>{project.title}</h3></div><p>{project.kind}</p></div></Link></motion.article>
+ return <motion.article className={`project-card project-${project.tone}`} initial={{opacity:0,y:36}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.12}} transition={{duration:.7,delay:(index%2)*.12}}><Link to={`/work/${project.slug}`} className="project-link"><div className="project-image"><ProjectArtwork slug={project.slug} compact/><span className="project-open"><MoveUpRight size={19}/></span><span className="concept-tag">Original art direction · 2025</span></div><div className="project-copy"><div><span className="eyebrow">{project.category} / {project.style}</span><h3>{project.title}</h3></div><p>{project.kind}</p></div></Link></motion.article>
 }

@@ -4,7 +4,7 @@ import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, ChevronDown, MoveUpRigh
 import { Link, Route, Routes, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Footer, Header, PageIntro, SectionHead } from './components/Chrome'
-import { ParticleCanvas, ProjectCard, StyleArt, StyleCard } from './components/Visual'
+import { ParticleCanvas, ProjectArtwork, ProjectCard, StyleArt, StyleCard } from './components/Visual'
 import { projects, services, steps, styles } from './data'
 
 function SEO({ title, description }: { title: string; description: string }) {
@@ -22,6 +22,8 @@ function SEO({ title, description }: { title: string; description: string }) {
 }
 
 function Layout() {
+  const location = useLocation()
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }) }, [location.pathname])
   return <><Header/><main><Routes>
     <Route path="/" element={<Home/>}/><Route path="/work" element={<Work/>}/><Route path="/work/:slug" element={<ProjectDetail/>}/>
     <Route path="/styles" element={<StyleCatalog/>}/><Route path="/styles/:slug" element={<StyleDetail/>}/><Route path="/services" element={<Services/>}/>
@@ -31,11 +33,12 @@ function Layout() {
 
 function Home() {
   return <><SEO title="ONDA Studio — цифровые впечатления с характером" description="Независимая digital-студия ONDA. Авторские сайты, интерактивные системы и цифровые впечатления с характером."/>
-    <section className="hero"><ParticleCanvas/><div className="hero-top"><span className="eyebrow">INDEPENDENT DIGITAL STUDIO · EST. 2020</span><span className="hero-coordinate">55°45' N&nbsp; 37°37' E<br/>WORKING EVERYWHERE</span></div>
+    <section className="hero" onPointerMove={event => { const rect=event.currentTarget.getBoundingClientRect(); event.currentTarget.style.setProperty('--pointer-x',`${(event.clientX-rect.left)/rect.width-.5}`); event.currentTarget.style.setProperty('--pointer-y',`${(event.clientY-rect.top)/rect.height-.5}`) }} onPointerLeave={event => { event.currentTarget.style.setProperty('--pointer-x','0'); event.currentTarget.style.setProperty('--pointer-y','0') }}><ParticleCanvas/><div className="hero-top"><span className="eyebrow">INDEPENDENT DIGITAL STUDIO · EST. 2020</span><span className="hero-coordinate">55°45' N&nbsp; 37°37' E<br/>WORKING EVERYWHERE</span></div>
       <div className="hero-title-wrap"><motion.span className="hero-side-note" initial={{opacity:0}} animate={{opacity:1}} transition={{delay:.9}}>WE MAKE<br/>THE WEB FEEL<br/>SOMETHING.</motion.span>
         <motion.h1 initial={{opacity:0,y:55}} animate={{opacity:1,y:0}} transition={{duration:.85,ease:[.2,.7,.2,1]}}>FORM<br/><span>FOLLOWS</span><br/><i>FEELING</i><sup>®</sup></motion.h1><div className="hero-orb" aria-hidden="true"><span>O</span><i/><b/></div></div>
       <div className="hero-bottom"><p>Мы проектируем цифровой опыт,<br/>который остаётся с вами.</p><Link className="hero-link" to="/work">Исследовать студию <ArrowDown size={16}/></Link><span className="hero-caption">DESIGN · DIGITAL · MOTION</span></div><div className="hero-scroll-line"/>
     </section>
+    <div className="motion-ribbon" aria-label="Design digital motion"><div>{Array.from({length:2},(_,i)=><span key={i}>DESIGN THAT MOVES <i>✳</i> DIGITAL WITH FEELING <i>✳</i> MADE TO BE REMEMBERED <i>✳</i> </span>)}</div></div>
     <section className="manifesto section-pad"><div className="manifesto-label"><span className="eyebrow">01 / OUR POINT OF VIEW</span><span>ИНТЕРНЕТ МОЖЕТ<br/>ЧУВСТВОВАТЬСЯ.</span></div><div className="manifesto-copy"><p>Хороший сайт не просто показывает. <em>Он открывает дверь</em> в мир, которого до этого не было.</p><div className="manifesto-foot"><span>Идеи на стыке ясности<br/>и приятного удивления.</span><Link to="/services" className="text-link">Что мы создаём <ArrowUpRight size={15}/></Link></div></div></section>
     <section className="work-preview section-pad"><SectionHead kicker="02 / SELECTED WORLDS" title={<>Вымышленные миры.<br/>Настоящее мастерство.</>} href="/work" label="Все концепты"/><div className="project-grid home-projects">{projects.slice(0,3).map((p,i)=><ProjectCard key={p.slug} project={p} index={i}/>)}</div><p className="concept-note"><i/> Авторские концепции студии · Не являются коммерческими заказами</p></section>
     <section className="style-preview section-pad"><div className="style-preview-heading"><div><span className="eyebrow">03 / A WORLD OF DIRECTIONS</span><h2>Один замысел.<br/><em>Много состояний.</em></h2></div><p>Выберите визуальный язык, который<br/>говорит за ваш бренд.</p></div><div className="style-mosaic">{styles.slice(0,4).map((s,i)=><StyleCard key={s.slug} item={s} index={i}/>)}</div><Link to="/styles" className="style-discover">ОТКРЫТЬ АТЛАС НАПРАВЛЕНИЙ <ArrowUpRight size={15}/></Link></section>
@@ -56,7 +59,7 @@ function Work() {
 
 function ProjectDetail() {
   const {slug}=useParams(); const project=projects.find(p=>p.slug===slug); if(!project)return <NotFound/>; const next=projects[(projects.indexOf(project)+1)%projects.length]
-  return <><SEO title={`${project.title} — концепт ONDA Studio`} description={project.description}/><section className="detail-hero"><Link to="/work" className="back-link"><ArrowLeft size={15}/> Все концепты</Link><span className="eyebrow">CONCEPT STUDY / 2025 · {project.category}</span><h1>{project.title}</h1><p>{project.description}</p><div className="detail-image"><img src={`https://images.unsplash.com/${project.image}?auto=format&fit=crop&w=2000&q=88`} alt={`Концептуальный проект ${project.title}`}/><span className="concept-tag">ONDA / INDEPENDENT EXPLORATION</span></div></section>
+  return <><SEO title={`${project.title} — концепт ONDA Studio`} description={project.description}/><section className="detail-hero"><Link to="/work" className="back-link"><ArrowLeft size={15}/> Все концепты</Link><span className="eyebrow">CONCEPT STUDY / 2025 · {project.category}</span><h1>{project.title}</h1><p>{project.description}</p><div className="detail-image"><ProjectArtwork slug={project.slug}/><span className="concept-tag">ONDA / ORIGINAL ART DIRECTION</span></div></section>
     <section className="project-story section-pad"><div><span className="eyebrow">THE IDEA / 01</span><h2>Цифровое пространство<br/>с собственным <em>ритмом.</em></h2></div><div><p>{project.description} Мы исследуем, как типографика, движение и композиция могут превращать обычный просмотр в небольшой опыт.</p><div className="project-meta"><span>НАПРАВЛЕНИЕ <b>{project.style}</b></span><span>ТИП <b>{project.kind}</b></span><span>СТАТУС <b>Авторский концепт</b></span></div></div></section><Link className="next-project" to={`/work/${next.slug}`}><span>СЛЕДУЮЩИЙ КОНЦЕПТ</span><b>{next.title}</b><ArrowRight/></Link>
   </>
 }
