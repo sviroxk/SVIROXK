@@ -6,10 +6,21 @@ const repository = environment.GITHUB_REPOSITORY
 const [owner, repositoryName] = repository?.split('/') ?? []
 const isUserSite = repositoryName?.endsWith('.github.io')
 const base = environment.GITHUB_ACTIONS === 'true' && repositoryName && !isUserSite
-  ? `/${repositoryName}/`
+  ? `/${repositoryName.toLowerCase()}/`
   : '/'
 
 export default defineConfig({
   base,
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'motion-vendor': ['framer-motion'],
+          'icon-vendor': ['lucide-react'],
+        },
+      },
+    },
+  },
 })
