@@ -14,12 +14,16 @@ const services = [...serviceBlock.matchAll(/slug:'([^']+)'/g)].map(m => m[1])
 const errors = []
 const visualRegistry = visual.match(/STYLE_VISUAL_CLASS_NAMES = \[([^\]]+)\]/)?.[1] ?? ''
 const availableVisualClasses = new Set([...visualRegistry.matchAll(/'([^']+)'/g)].map(m => m[1]))
+const styleArtBlock=visual.slice(visual.indexOf('export function StyleArt'),visual.indexOf('export function StyleCard'))
+const visualMap=styleArtBlock.match(/const visualByClass:Record<string,React\.ReactNode>=\{([\s\S]*?)\n \}/)?.[1]??''
+const renderedStyleClasses=new Set([...visualMap.matchAll(/(?:^|,)\s*'?(?:([a-z-]+))'?:</gm)].map(m=>m[1]))
 const sceneRegistry = visual.match(/const projectSceneNames:Record<string,string>=\{([^}]+)\}/)?.[1] ?? ''
 const baseRegistry = visual.match(/PROJECT_SCENE_BASE_CLASSES:Record<string,string>=\{([^}]+)\}/)?.[1] ?? ''
 const scenes = new Map([...sceneRegistry.matchAll(/([a-zA-Z]+):'([^']+)'/g)].map(m => [m[1],m[2]]))
 const baseScenes = new Map([...baseRegistry.matchAll(/([a-zA-Z]+):'([^']+)'/g)].map(m => [m[1],m[2]]))
 for (const style of styles) {
   if (!availableVisualClasses.has(style.className)) errors.push(`StyleArt не обрабатывает className ${style.className} (${style.slug})`)
+  if (!renderedStyleClasses.has(style.className)) errors.push(`Нет графической композиции для ${style.slug} / ${style.className}`)
   if (!new RegExp(`\\.art-${style.className}(?:\\b|[.:{])`).test(css)) errors.push(`CSS не содержит .art-${style.className}`)
   if (!css.includes(`.art-${style.className}`)) errors.push(`Стиль ${style.slug}: отсутствует собственный визуальный CSS`)
 }

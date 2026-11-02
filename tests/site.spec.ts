@@ -30,13 +30,34 @@ test('all application routes render content without JS errors or horizontal over
   for(const route of allRoutes){
     await page.goto(`/#${route}`,{waitUntil:'domcontentloaded'})
     await expect(page.locator('main h1').first(),route).toBeVisible({timeout:15000})
-    if(route.startsWith('/styles/'))await expect(page.locator('[data-style-visual]'),route).toHaveCount(1)
+    if(route.startsWith('/styles/')){const slug=route.split('/').at(-1)!;await expect(page.locator(`.style-detail-${styles.find(item=>item.slug===slug)?.className} [data-style-visual]`),route).toHaveCount(1)}
     if(route.startsWith('/work/'))await expect(page.locator(`[data-project-visual="${route.split('/').at(-1)}"]`).first(),route).toBeVisible()
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth)
     expect(overflow,`Горизонтальное переполнение на ${route}`).toBeFalsy()
-    if(screenshots&&['/','/work','/styles','/services','/privacy'].includes(route)){const path=testInfo.outputPath(`${testInfo.project.name}${route.replaceAll('/','_')||'_home'}.png`);await mkdir(path.slice(0,path.lastIndexOf('/')),{recursive:true});await page.screenshot({path,fullPage:true})}
+    if(screenshots){const path=testInfo.outputPath(`${testInfo.project.name}${route==='/'?'_home':route.replaceAll('/','_')}.png`);await mkdir(path.slice(0,path.lastIndexOf('/')),{recursive:true});await expect(page.locator('[data-project-visual], [data-style-visual]').first()).toBeAttached().catch(()=>{});for(let y=0;y<await page.evaluate(()=>document.body.scrollHeight);y+=Math.max(300,Math.floor(page.viewportSize()!.height*.75))){await page.evaluate(y=>window.scrollTo(0,y),y);await page.waitForTimeout(70)}await page.evaluate(()=>window.scrollTo(0,0));await page.waitForTimeout(250);await page.screenshot({path,fullPage:true})}
   }
   expect(errors).toEqual([])
+})
+
+test('process timeline renders all eight usable rows', async ({page}) => {
+  await page.goto('/#/process',{waitUntil:'domcontentloaded'})
+  const rows=page.locator('.timeline-list .timeline-item')
+  await expect(rows).toHaveCount(8)
+  for(let i=0;i<8;i++)await expect(rows.nth(i)).toBeVisible()
+  await rows.nth(6).click()
+  await expect(rows.nth(6)).toHaveClass(/selected/)
+  await expect(page.locator('.process-stage h2')).toContainText('Тестирование и публикация')
+})
+
+test('style previews show one title and a legible interface example', async ({page}) => {
+  await page.goto('/#/styles',{waitUntil:'domcontentloaded'})
+  const card=page.locator('[data-style-card="neon"]')
+  await expect(card.locator('[data-style-visual]')).toHaveCount(1)
+  await expect(card.locator('.style-demo-ui')).toBeVisible()
+  await expect(card.locator('.style-art-index')).toBeVisible()
+  await expect(card.locator('.style-demo-ui b')).toHaveText('Неонуар')
+  await expect(card.locator('.style-demo-ui i')).toBeVisible()
+  await expect(card.locator('.style-card-info h3')).toHaveText('Неонуар')
 })
 
 test('case screens switch tabs and device layout; project style preselects order form', async ({page}) => {
