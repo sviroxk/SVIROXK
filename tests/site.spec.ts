@@ -1,0 +1,79 @@
+import { expect, test } from '@playwright/test'
+import { mkdir } from 'node:fs/promises'
+import { projects, services, styles } from '../src/data'
+import { serviceDetails, caseStudies } from '../src/experience'
+import { additionalCaseStudies } from '../src/caseExtras'
+
+const screenshots = process.env.SCREENSHOTS === '1'
+test.setTimeout(180_000)
+const commonRoutes = ['/', '/work', '/styles', '/services', '/process', '/contact', '/order', '/advisor', '/compare', '/configurator', '/history', '/faq', '/privacy', '/terms']
+const allRoutes = [...commonRoutes, ...projects.map(p=>`/work/${p.slug}`), ...styles.map(s=>`/styles/${s.slug}`), ...serviceDetails.map(s=>`/services/${s.slug}`)]
+
+test('project, style and service matrices are complete and unique', async () => {
+  expect(projects).toHaveLength(25)
+  expect(styles).toHaveLength(27)
+  expect(serviceDetails).toHaveLength(11)
+  expect(new Set(projects.map(p=>p.slug)).size).toBe(projects.length)
+  expect(new Set(styles.map(s=>s.slug)).size).toBe(styles.length)
+  expect(new Set(serviceDetails.map(s=>s.slug)).size).toBe(serviceDetails.length)
+  for (const project of projects) {
+    expect(styles.some(s=>s.slug===project.styleSlug), project.slug).toBeTruthy()
+    expect(Boolean(caseStudies[project.slug]||additionalCaseStudies[project.slug]), project.slug).toBeTruthy()
+  }
+  for (const service of services) expect(serviceDetails.some(d=>d.name===service.name),service.name).toBeTruthy()
+})
+
+test('all application routes render content without JS errors or horizontal overflow', async ({page},testInfo) => {
+  const errors:string[]=[]
+  page.on('pageerror',e=>errors.push(e.message))
+  page.on('console',m=>{if(m.type()==='error')errors.push(m.text())})
+  for(const route of allRoutes){
+    await page.goto(`/#${route}`,{waitUntil:'domcontentloaded'})
+    await expect(page.locator('main h1').first(),route).toBeVisible({timeout:15000})
+    if(route.startsWith('/styles/'))await expect(page.locator('[data-style-visual]'),route).toHaveCount(1)
+    if(route.startsWith('/work/'))await expect(page.locator(`[data-project-visual="${route.split('/').at(-1)}"]`).first(),route).toBeVisible()
+    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth)
+    expect(overflow,`Горизонтальное переполнение на ${route}`).toBeFalsy()
+    if(screenshots&&['/','/work','/styles','/services','/privacy'].includes(route)){const path=testInfo.outputPath(`${testInfo.project.name}${route.replaceAll('/','_')||'_home'}.png`);await mkdir(path.slice(0,path.lastIndexOf('/')),{recursive:true});await page.screenshot({path,fullPage:true})}
+  }
+  expect(errors).toEqual([])
+})
+
+test('case screens switch tabs and device layout; project style preselects order form', async ({page}) => {
+  await page.goto('/#/work/morrow',{waitUntil:'domcontentloaded'})
+  await expect(page.locator('[data-project-screens]')).toBeVisible()
+  const heading=page.locator('.case-screens h2')
+  const first=await heading.innerText()
+  await page.getByRole('tab').nth(1).click()
+  await expect(heading).not.toHaveText(first)
+  await page.getByRole('button',{name:'Телефон'}).click()
+  await expect(page.getByRole('button',{name:'Телефон'})).toHaveAttribute('aria-pressed','true')
+  await page.goto('/#/work/morrow')
+  await page.getByRole('link',{name:/Обсудить похожий проект/}).click()
+  await expect(page.locator('select[name="style"]')).toHaveValue('gradient')
+})
+
+test('portfolio search works together with category filters and style favorites persist', async ({page}) => {
+  await page.goto('/#/work',{waitUntil:'domcontentloaded'})
+  await page.getByRole('textbox',{name:'Поиск по портфолио'}).fill('форма')
+  await page.getByRole('button',{name:'Архитектура',exact:true}).click()
+  await expect(page.locator('.project-card')).toHaveCount(1)
+  await expect(page.getByRole('textbox',{name:'Поиск по портфолио'})).toHaveValue('форма')
+  await expect(page.getByRole('button',{name:'Архитектура',exact:true})).toHaveClass(/active/)
+  await page.goto('/#/styles',{waitUntil:'domcontentloaded'})
+  const favorite=page.getByRole('button',{name:/Добавить в избранное/}).first()
+  await favorite.click()
+  await expect(page.getByRole('button',{name:/Убрать из избранного/}).first()).toHaveAttribute('aria-pressed','true')
+  const favoriteName=await page.locator('[data-style-card]').first().locator('h3').innerText()
+  await page.goto('/#/compare',{waitUntil:'domcontentloaded'})
+  await expect(page.getByRole('button',{name:new RegExp(favoriteName)})).toHaveAttribute('aria-pressed','true')
+})
+
+test('viewport smoke matrix has no horizontal overflow and nav remains usable', async ({page}) => {
+  test.setTimeout(90_000)
+  for(const size of [{width:320,height:720},{width:360,height:800},{width:390,height:844},{width:768,height:1024},{width:1024,height:768},{width:1280,height:800},{width:1440,height:900},{width:1920,height:1080}]){
+    await page.setViewportSize(size);await page.goto('/#/work',{waitUntil:'domcontentloaded'});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),`${size.width}x${size.height}`).toBeTruthy()
+    if(size.width<=700){const toggle=page.getByRole('button',{name:/меню/});if(await toggle.getAttribute('aria-expanded')==='false')await toggle.click();await expect(page.getByRole('navigation',{name:'Основная навигация'}).getByRole('link',{name:'Работы'})).toBeVisible()}
+  }
+})
