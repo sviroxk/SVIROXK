@@ -9,10 +9,10 @@ export function CosmicBackground(){
  useEffect(()=>{
   const canvas=ref.current,ctx=canvas?.getContext('2d');if(!canvas||!ctx)return
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');let raf=0,visible=true
-  const pointer={x:-1000,y:-1000};const count=Math.min(180,Math.max(70,Math.round(window.innerWidth*window.innerHeight/9000)))
-  const stars=Array.from({length:count},()=>({x:Math.random(),y:Math.random(),r:.35+Math.random()*1.15,phase:Math.random()*Math.PI*2,drift:.15+Math.random()*.6}))
+  const pointer={x:-1000,y:-1000};const baseCount=Math.min(220,Math.max(90,Math.round(window.innerWidth*window.innerHeight/9000)));const count=baseCount*3
+  const stars=Array.from({length:count},()=>({x:Math.random(),y:Math.random(),r:.45+Math.random()*1.25,phase:Math.random()*Math.PI*2,drift:.35+Math.random()*.65,attraction:.2+Math.random()*.8}))
   const resize=()=>{const ratio=Math.min(window.devicePixelRatio||1,1.5);canvas.width=Math.round(innerWidth*ratio);canvas.height=Math.round(innerHeight*ratio);ctx.setTransform(ratio,0,0,ratio,0,0)}
-  const frame=(time:number)=>{if(!visible||document.hidden||reduced.matches)return;const w=innerWidth,h=innerHeight;ctx.clearRect(0,0,w,h);for(const star of stars){const dx=pointer.x-w/2,dy=pointer.y-h/2;const px=star.x*w+dx*.004*star.drift,py=star.y*h+dy*.004*star.drift;const pulse=.38+.62*(.5+.5*Math.sin(time*.0007+star.phase));ctx.beginPath();ctx.arc(px,py,star.r,0,Math.PI*2);ctx.fillStyle=`rgba(216,229,255,${pulse*.68})`;ctx.fill()}if(Math.hypot(pointer.x-w/2,pointer.y-h/2)<430){const g=ctx.createRadialGradient(pointer.x,pointer.y,0,pointer.x,pointer.y,240);g.addColorStop(0,'rgba(112,150,224,.09)');g.addColorStop(1,'rgba(112,150,224,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)}raf=requestAnimationFrame(frame)}
+  const frame=(time:number)=>{if(!visible||document.hidden||reduced.matches)return;const w=innerWidth,h=innerHeight;ctx.clearRect(0,0,w,h);for(const star of stars){const baseX=star.x*w+Math.sin(time*.00009+star.phase)*2.2,baseY=star.y*h+Math.cos(time*.00008+star.phase)*2.2,dx=pointer.x-baseX,dy=pointer.y-baseY,d=Math.hypot(dx,dy),radius=Math.min(220,Math.max(110,w*.16)),pull=d<radius&&d>1?Math.pow((radius-d)/radius,1.65)*radius*.8*star.attraction:0,px=baseX+dx/(d||1)*pull,py=baseY+dy/(d||1)*pull,pulse=.68+.32*(.5+.5*Math.sin(time*.0011+star.phase));ctx.beginPath();ctx.arc(px,py,pull>12?star.r*2.1:star.r,0,Math.PI*2);ctx.fillStyle=pull>12?`rgba(230,239,255,${pulse*.95})`:`rgba(216,229,255,${pulse*.8})`;ctx.fill()}raf=requestAnimationFrame(frame)}
   const play=()=>{cancelAnimationFrame(raf);if(visible&&!document.hidden&&!reduced.matches)raf=requestAnimationFrame(frame)}
   const observer=new IntersectionObserver(entries=>{visible=entries[0]?.isIntersecting??true;play()});observer.observe(canvas)
   const move=(e:PointerEvent)=>{pointer.x=e.clientX;pointer.y=e.clientY};const clear=()=>{pointer.x=-1000;pointer.y=-1000}
@@ -45,35 +45,24 @@ const projectSceneNames:Record<string,string>={morrow:'morrow-world',objects:'ob
 export const PROJECT_SCENE_NAMES=projectSceneNames
 export const PROJECT_SCENE_BASE_CLASSES:Record<string,string>={morrow:'morrow-world',objects:'objects-world',after:'after-world',form:'form-world',tinyworlds:'tiny-world',still:'still-world',volt:'volt-world',northstar:'northstar-world',ledger:'ledger-world',pulse:'pulse-world',saffron:'saffron-world',folio:'folio-world',kinetic:'kinetic-world',common:'common-world',orbit:'orbit-world',frame:'frame-world',mechanica:'kinetic-world',civic:'civic-world',atelier:'atelier-world',signal:'after-world',commonwealth:'form-world',daybreak:'daybreak-world',fieldnotes:'folio-world',terracotta:'objects-world',orbitlab:'orbit-world'}
 
-export function StyleArt({ item, compact = false }: { item: Style; compact?: boolean }) {
- const visualByClass:Record<string,React.ReactNode>={
-  particle:<div className="particle-swarm">{Array.from({length:18},(_,i)=><i key={i} style={{'--n':i} as CSSProperties}/>)}</div>,
-  holo:<div className="holo-disc"/>, neon:<span className="neon-word">НОЧНОЙ<br/>ЭФИР</span>,
-  wireframe:<div className="wire-sphere"/>,glass:<div className="glass-stack"><i/><i/><i/></div>,
-  editorial:<div className="editorial-type">Полевые<br/>заметки<span>ВЫПУСК 01</span></div>,
-  bauhaus:<div className="bauhaus-composition"><i/><b/><span/></div>,
-  brutal:<div className="brutal-sticker">БЕЗ<br/>РАМОК</div>,isometric:<div className="iso-cube"><i/><i/><i/></div>,
-  pixel:<div className="pixel-tiles">{Array.from({length:25},(_,i)=><i key={i}/>)}</div>,
-  aurora:<div className="aurora-ribbon"/>,blueprint:<div className="plan-lines"><span>СЕЧЕНИЕ А—А</span><i/><b>1:50</b></div>,
-  deco:<div className="deco-sun">✳</div>,dashboard:<div className="dash-mini"><span>ОБЗОР / ДАННЫЕ</span><b>84,6</b><i/><div className="bars">{Array.from({length:12},(_,i)=><em key={i} style={{height:`${20+(i*17)%75}%`}}/>)}</div></div>,
-  comic:<span className="comic-burst">УХ!</span>,clay:<div className="clay-shapes"><i/><i/><i/></div>,
-  swiss:<div className="swiss-grid"><i/><i/><i/><span>01 / 03</span></div>,retro:<><div className="retro-grid"/><span className="retro-sun"/></>,
-  ascii:<pre className="ascii-art">{'░▒▓ SVIROXK ▓▒░\n  ЦИФРОВОЙ\n  ДИЗАЙН'}</pre>,gradient:<div className="gradient-blob"/>,
-  halftone:<div className="halftone-orb"/>,maximal:<span className="maximal-star">✳</span>,
-  volt:<div className="volt-card"><i/><span>МОДЕЛЬ / 01</span></div>,
-  pulse:<div className="pulse-card"><i/><i/><i/><span>СОСТОЯНИЕ / В НОРМЕ</span></div>,
-  folio:<div className="folio-type">ПОЛЕ<br/>ЗАПИСЕЙ</div>,
-  signal:<div className="signal-bars">{Array.from({length:19},(_,i)=><i key={i} style={{'--bar':`${16+Math.abs(Math.sin(i*.6))*80}%`} as CSSProperties}/>)}</div>,
-  kinetic:<div className="kinetic-form"><i/><i/><i/></div>,
- }
- return <div className={`style-art art-${item.className} ${compact?'compact':''}`} data-style-visual={item.className} role="img" aria-label={`Демонстрация стиля «${item.localName}»`} style={{'--palette-accent':item.palette[1],'--palette-primary':item.palette[0],'--palette-third':item.palette[2]} as CSSProperties}>
-  <span className="style-art-index">{item.eyebrow.split('/')[0]} / SVIROXK</span>
-  <div className={`style-art-scene scene-style-${item.className}`} aria-hidden="true"><i/><i/><i/><b/><b/><span/></div>
-  {visualByClass[item.className]}
-  <div className="style-demo-ui" aria-hidden="true"><span className="style-demo-label">{item.category} / ИНТЕРФЕЙС</span><b>{item.localName}</b><i>{item.example}</i><span className="style-demo-action">СМОТРЕТЬ ПРОЕКТ <em>↗</em></span><span className="style-demo-palette">{item.palette.map(color=><em key={color} style={{backgroundColor:color}}/>)}</span></div>
-  <div className="style-art-caption"><strong>{item.localName}</strong><span>{item.name}</span></div>
- </div>
-}
+export const STYLE_ART_COMPOSITIONS={
+ particle:<><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><span>ЧАСТИЦЫ / ПОЛЕ</span></>,
+ holographic:<><i/><i/><span>ПРИЗМА / СВЕТ</span></>,neon:<><i/><i/><b>NOIR</b><span>НОЧНАЯ СЦЕНА</span></>,
+ wireframe:<><i/><i/><span>КАРКАС / СЕЧЕНИЕ</span></>,glass:<><i/><i/><i/><span>СЛОИ / ПРОЗРАЧНОСТЬ</span></>,
+ editorial:<><b>Аа</b><i/><span>ЗАГОЛОВОК / ТЕКСТ</span></>,bauhaus:<><i/><b/><span>ФОРМА / ФУНКЦИЯ</span></>,
+ brutalism:<><b>БРУТАЛ</b><i/><span>КОНТРАСТ / СЕТКА</span></>,isometric:<><i/><i/><i/><span>ОБЪЁМ / ПРОСТРАНСТВО</span></>,
+ pixel:<><i/><i/><i/><span>ПИКСЕЛЬ / МОДУЛЬ</span></>,aurora:<><i/><b/><span>СВЕТ / ПОТОК</span></>,
+ blueprint:<><i/><b/><span>ЧЕРТЁЖ / 1:50</span></>,deco:<><i/><i/><span>АР-ДЕКО / СИММЕТРИЯ</span></>,
+ dashboard:<><b>84,6</b><i/><i/><span>ДАННЫЕ / ОБЗОР</span></>,comic:<><i/><b>БАХ!</b><span>КАДР / РИТМ</span></>,
+ clay:<><i/><i/><i/><span>ФОРМА / ОБЪЁМ</span></>,swiss:<><i/><b>01</b><span>СЕТКА / ТИПОГРАФИКА</span></>,
+ retro:<><i/><b/><span>РЕТРО / ПЕРСПЕКТИВА</span></>,ascii:<><pre>░▒▓ SVIROXK ▓▒░</pre><span>СИМВОЛЫ / ТЕКСТ</span></>,
+ gradient:<><i/><span>ЦВЕТ / ПЕРЕХОД</span></>,halftone:<><i/><span>ТОЧКА / ФАКТУРА</span></>,
+ maximal:<><b>✳</b><span>МАКСИМУМ / РИТМ</span></>,neofuturism:<><i/><b/><span>МОБИЛЬНОСТЬ / БУДУЩЕЕ</span></>,
+ futuristicUi:<><i/><i/><i/><span>ИНТЕРФЕЙС / ДАННЫЕ</span></>,experimentalTypography:<><b>А</b><i/><span>ТЕКСТ / ЭКСПЕРИМЕНТ</span></>,
+ cyberpunk:<><i/><i/><i/><span>НЕОН / НОЧЬ</span></>,morphing:<><i/><i/><i/><span>ФОРМА / ДВИЖЕНИЕ</span></>,
+} satisfies Record<string,React.ReactNode>
+const STYLE_COMPOSITION_KEY:Record<string,keyof typeof STYLE_ART_COMPOSITIONS>={particle:'particle',holographic:'holographic',neon:'neon',wireframe:'wireframe',glass:'glass',editorial:'editorial',bauhaus:'bauhaus',brutalism:'brutalism',isometric:'isometric',pixel:'pixel',aurora:'aurora',blueprint:'blueprint',deco:'deco',dashboard:'dashboard',comic:'comic',clay:'clay',swiss:'swiss',retro:'retro',ascii:'ascii',gradient:'gradient',halftone:'halftone',maximal:'maximal',neofuturism:'neofuturism','futuristic-ui':'futuristicUi','experimental-typography':'experimentalTypography',cyberpunk:'cyberpunk',morphing:'morphing'}
+export function StyleArt({item,compact=false}:{item:Style;compact?:boolean}){return <div className={`style-art art-${item.className} ${compact?'compact':''}`} data-style-visual={item.slug} role="img" aria-label={`Демонстрация стиля «${item.localName}»`} style={{'--palette-accent':item.palette[1],'--palette-primary':item.palette[0],'--palette-third':item.palette[2]} as CSSProperties}><span className="style-art-index">{item.eyebrow.split('/')[0]} / SVIROXK</span><div className={`style-art-scene composition-${item.slug}`} data-art-composition={item.slug} aria-hidden="true">{STYLE_ART_COMPOSITIONS[STYLE_COMPOSITION_KEY[item.slug]]}</div><div className="style-demo-ui" aria-hidden="true"><span className="style-demo-label">{item.category} / ПРИМЕР</span><b>{item.localName}</b><i>{item.example}</i><span className="style-demo-action">СМОТРЕТЬ ПРОЕКТ <em>↗</em></span></div></div>}
 export function StyleCard({ item, index = 0 }: { item: Style; index?: number }) {
  const [saved,setSaved]=useState(()=>{try{return (JSON.parse(localStorage.getItem('sviroxk-favorite-styles')||'[]') as string[]).includes(item.slug)}catch{return false}})
  const toggleFavorite=(event:React.MouseEvent<HTMLButtonElement>)=>{event.preventDefault();event.stopPropagation();try{const favorites=JSON.parse(localStorage.getItem('sviroxk-favorite-styles')||'[]') as string[];const next=saved?favorites.filter(slug=>slug!==item.slug):[...new Set([...favorites,item.slug])];localStorage.setItem('sviroxk-favorite-styles',JSON.stringify(next));setSaved(!saved);window.dispatchEvent(new CustomEvent('sviroxk-favorites-changed',{detail:next}))}catch{/* Private browsing may disable local storage. */}}

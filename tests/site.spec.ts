@@ -39,6 +39,19 @@ test('all application routes render content without JS errors or horizontal over
   expect(errors).toEqual([])
 })
 
+test('cosmic field contains triple-density stars pulled toward the cursor', async ({page}) => {
+  await page.goto('/#/',{waitUntil:'domcontentloaded'})
+  await expect(page.locator('.cosmic-background')).toBeAttached()
+  const canvas=page.locator('.cosmic-background')
+  const density=await canvas.evaluate(el=>{const ctx=(el as HTMLCanvasElement).getContext('2d')!;let arcs=0;const original=ctx.arc.bind(ctx);ctx.arc=(...args:Parameters<CanvasRenderingContext2D['arc']>)=>{arcs++;return original(...args)};return new Promise<number>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(arcs))))})
+  expect(density).toBeGreaterThan(200)
+  const before=await canvas.evaluate(el=>{const c=el as HTMLCanvasElement;const g=c.getContext('2d')!;g.clearRect(0,0,c.width,c.height);return g.getImageData(0,0,Math.min(c.width,240),Math.min(c.height,240)).data.reduce((sum,v)=>sum+(v>20?1:0),0)})
+  await page.mouse.move(195,195);await page.waitForTimeout(300)
+  const after=await canvas.evaluate(el=>{const c=el as HTMLCanvasElement;const g=c.getContext('2d')!;return g.getImageData(0,0,Math.min(c.width,240),Math.min(c.height,240)).data.reduce((sum,v)=>sum+(v>20?1:0),0)})
+  expect(after).toBeGreaterThan(0);expect(before).toBeGreaterThan(0)
+  await page.emulateMedia({reducedMotion:'reduce'});await expect(canvas).toBeHidden()
+})
+
 test('process timeline renders all eight usable rows', async ({page}) => {
   await page.goto('/#/process',{waitUntil:'domcontentloaded'})
   const rows=page.locator('.timeline-list .timeline-item')

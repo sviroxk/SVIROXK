@@ -209,3 +209,48 @@ body{background:#05070b;color:#edf0f6}
 .style-card .style-art{height:235px}
 .style-card-info{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.style-card-info>div{min-width:0}.style-card-info h3{line-height:1.2;overflow-wrap:anywhere}
 @media(max-width:700px){.style-card .style-art,.atlas-grid .style-art,.style-mosaic .style-art{height:clamp(190px,53vw,230px)!important}.style-art .style-ui-sample{left:7%!important;right:7%!important;top:25%!important;min-height:80px!important;padding:8px!important;gap:5px!important}.style-art .style-ui-sample>b{font-size:10px!important}.style-art .style-art-caption{left:9px!important;right:9px!important;bottom:7px!important}.style-art .style-art-caption strong{font-size:9px!important}.style-art .style-art-caption span{font-size:6px!important}}
+
+/* Style atlas final composition: distinct art stays behind one compact sample panel. */
+.style-art{isolation:isolate;overflow:hidden;background:var(--art-bg,#0b1018);color:#f3f5fa}
+.style-art::before{z-index:-2;opacity:1}
+.style-art .style-art-index{position:absolute;z-index:4;left:13px;top:12px;font:7px/1.2 var(--mono);letter-spacing:.08em;color:#e5ebf4}
+.style-art .style-art-scene{position:absolute;z-index:-1;inset:16% 11% 20%;opacity:.74;overflow:visible}
+.style-art .style-art-scene i{width:30%;left:35%;top:22%;border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.style-art .style-art-scene i:nth-child(2){left:13%;top:48%;width:19%;background:color-mix(in srgb,var(--accent) 26%,transparent)}
+.style-art .style-art-scene i:nth-child(3){left:67%;top:12%;width:21%}
+.style-art .style-art-scene b{background:var(--accent)}
+.style-art .style-demo-ui{position:absolute;z-index:3;left:9%;right:9%;top:30%;bottom:auto;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 8px;min-height:0;padding:9px 10px;background:rgba(4,7,12,.94);border:1px solid color-mix(in srgb,var(--palette-accent,#c8ed66) 68%,white 5%);box-shadow:0 8px 20px #0008;color:#f3f5fa;opacity:1;overflow:hidden;pointer-events:none}
+.style-art .style-demo-label,.style-art .style-demo-action{display:block;grid-column:1/-1;font:6px/1.25 var(--mono);letter-spacing:.08em;color:var(--palette-accent,#c8ed66)}
+.style-art .style-demo-ui>b{display:block;grid-column:1/-1;font:600 clamp(9px,1.05vw,13px)/1.2 Manrope,sans-serif;color:#f4f6fa;letter-spacing:-.025em;overflow-wrap:anywhere}
+.style-art .style-demo-ui>i{display:block;grid-column:1/-1;font:7px/1.3 Manrope,sans-serif;color:#c3cddd;font-style:normal;overflow-wrap:anywhere}
+.style-art .style-demo-action{border-top:1px solid #ffffff25;padding-top:5px}
+.style-art .style-demo-action em{float:right;font-style:normal}
+.style-art .style-demo-palette{position:absolute;top:9px;right:9px;display:flex;gap:3px}
+.style-art .style-demo-palette em{width:5px;height:5px;border-radius:50%}
+.style-art .style-art-scene.scene-style-particle i{width:4px;height:4px;border:0;border-radius:50%;background:var(--palette-accent);box-shadow:0 0 11px var(--palette-accent)}
+.style-art .style-art-scene.scene-style-holo i:first-child{width:72%;aspect-ratio:1;left:14%;top:0;border:0;border-radius:50%;background:conic-gradient(var(--palette-accent),#9ce8f1,#d6b8ff,var(--palette-primary),var(--palette-accent))}
+.style-art .style-art-scene.scene-style-neon{background:repeating-linear-gradient(0deg,transparent 0 18px,#69f5d83b 19px 20px)}
+.style-art .style-art-scene.scene-style-wireframe,.style-art .style-art-scene.scene-style-blueprint{background-image:linear-gradient(#e0d39a25 1px,transparent 1px),linear-gradient(90deg,#e0d39a25 1px,transparent 1px);background-size:10px 10px}
+.style-art .style-art-scene.scene-style-glass i{border-color:#fff9;background:linear-gradient(135deg,#ffffff34,#ffffff05);box-shadow:7px 10px 18px #0004}
+.style-art .style-art-scene.scene-style-editorial i:first-child,.style-art .style-art-scene.scene-style-swiss i:first-child{width:48%;height:56%;left:28%;top:18%;background:linear-gradient(135deg,var(--palette-primary),var(--palette-accent));border:0;transform:rotate(-7deg)}
+.style-art .style-art-scene.scene-style-bauhaus i:first-child{background:var(--palette-primary);border:0;border-radius:50%}.style-art .style-art-scene.scene-style-bauhaus i:nth-child(2){background:var(--palette-accent);border:0;border-radius:0}
+.style-art .style-art-scene.scene-style-brutalism{border:2px solid var(--palette-accent);box-shadow:5px 5px var(--palette-accent)}
+.style-art .style-art-scene.scene-style-isometric i{transform:rotate(45deg) skew(-12deg);background:color-mix(in srgb,var(--palette-primary) 55%,transparent)}
+.style-art .style-art-scene.scene-style-pixel{background:repeating-linear-gradient(0deg,transparent 0 9px,color-mix(in srgb,var(--palette-accent) 38%,transparent) 10px 13px),repeating-linear-gradient(90deg,transparent 0 9px,color-mix(in srgb,var(--palette-accent) 38%,transparent) 10px 13px)}
+.style-art .style-art-scene.scene-style-aurora i:first-child{width:88%;height:72%;border:0;border-radius:50%;background:radial-gradient(ellipse,var(--palette-accent),transparent 70%);filter:blur(7px)}
+.style-art .style-art-scene.scene-style-deco i:first-child{border:4px double var(--palette-accent);border-radius:50%}
+.style-art .style-art-scene.scene-style-dashboard,.style-art .style-art-scene.scene-style-pulse{border:1px solid var(--palette-accent);background:repeating-linear-gradient(0deg,transparent 0 13px,#ffffff10 14px 15px)}
+.style-art .style-art-scene.scene-style-comic{background-image:radial-gradient(var(--palette-accent) 1px,transparent 1.5px);background-size:8px 8px}
+.style-art .style-art-scene.scene-style-clay i{border:0;border-radius:46%;background:linear-gradient(135deg,var(--palette-primary),var(--palette-accent));box-shadow:7px 11px 18px #0005}
+.style-art .style-art-scene.scene-style-retro{background:repeating-linear-gradient(0deg,transparent 0 10px,color-mix(in srgb,var(--palette-accent) 45%,transparent) 11px 12px);transform:perspective(180px) rotateX(32deg)}
+.style-art .style-art-scene.scene-style-ascii{background:radial-gradient(circle,var(--palette-accent) 1px,transparent 1px);background-size:5px 5px;mask-image:linear-gradient(90deg,#000,transparent)}
+.style-art .style-art-scene.scene-style-gradient i:first-child{width:78%;height:76%;border:0;border-radius:46% 54% 65% 35%;background:radial-gradient(circle at 32% 30%,var(--palette-third),var(--palette-primary) 48%,var(--palette-accent))}
+.style-art .style-art-scene.scene-style-halftone{background:radial-gradient(circle,var(--palette-primary) 1px,transparent 1.5px);background-size:5px 5px;mask-image:radial-gradient(ellipse,#000 38%,transparent 73%)}
+.style-art .style-art-scene.scene-style-maximal i:first-child{width:90%;height:90%;border:0;background:var(--palette-accent);clip-path:polygon(50% 0,61% 37%,100% 25%,70% 52%,100% 80%,61% 67%,50% 100%,39% 67%,0 80%,30% 52%,0 25%,39% 37%)}
+.style-art .style-art-scene.scene-style-neofuturism i:first-child{width:75%;height:26%;top:47%;left:13%;border-radius:45% 30% 22% 22%;background:linear-gradient(var(--palette-third),var(--palette-primary));transform:skew(-15deg)}
+.style-art .style-art-scene.scene-style-futuristic-ui{border:1px solid var(--palette-accent);background:repeating-linear-gradient(0deg,transparent 0 14px,#ffffff12 15px 16px)}
+.style-art .style-art-scene.scene-style-experimental-typography i:first-child{width:58%;height:58%;left:22%;background:var(--palette-third);border:0;transform:rotate(-9deg)}
+.style-art .style-art-scene.scene-style-cyberpunk i{width:3px;height:var(--bar,55%);border:0;background:var(--palette-accent)}
+.style-art .style-art-scene.scene-style-morphing i{border-radius:42% 58% 60% 40%;background:color-mix(in srgb,var(--palette-accent) 48%,transparent);animation:scene-float 5s ease-in-out infinite alternate}
+.style-art .brutal-sticker,.style-art .deco-sun,.style-art .comic-burst,.style-art .ascii-art,.style-art .maximal-star,.style-art .dash-mini,.style-art .plan-lines,.style-art .pixel-tiles,.style-art .bauhaus-shape,.style-art .iso-cube,.style-art .wire-sphere,.style-art .clay-shapes,.style-art .halftone-orb,.style-art .retro-grid,.style-art .retro-sun,.style-art .particle-swarm,.style-art .holo-disc,.style-art .neon-word,.style-art .glass-stack,.style-art .editorial-type,.style-art .aurora-ribbon,.style-art .gradient-blob,.style-art .swiss-grid,.style-art .volt-card,.style-art .pulse-card,.style-art .folio-type,.style-art .signal-bars,.style-art .kinetic-form{display:none!important}
+.timeline-list{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-auto-rows:minmax(48px,auto)!important;align-content:start!important;width:100%!important;min-width:0!important}
