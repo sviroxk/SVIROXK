@@ -1,35 +1,37 @@
-import { useEffect, useRef, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { ArrowUpRight, MoveUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { type Style, type Project } from '../data'
 
 export function ParticleCanvas() {
- const ref = useRef<HTMLCanvasElement>(null)
- useEffect(() => {
-   const canvas = ref.current; const ctx = canvas?.getContext('2d'); if (!canvas || !ctx) return
-   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-   let raf = 0
-   const pointer = { x: -999, y: -999 }
-   const points = Array.from({ length: window.innerWidth < 700 ? 56 : 110 }, () => ({ x: Math.random(), y: Math.random(), phase: Math.random() * 6, speed: .1 + Math.random() * .25, size: .5 + Math.random() * 1.4 }))
-   const resize = () => { const ratio = Math.min(devicePixelRatio || 1, 1.5); canvas.width = canvas.clientWidth * ratio; canvas.height = canvas.clientHeight * ratio; ctx.setTransform(ratio, 0, 0, ratio, 0, 0) }
-   const move = (event: PointerEvent) => { const box = canvas.getBoundingClientRect(); pointer.x = event.clientX - box.left; pointer.y = event.clientY - box.top }
-   const draw = (t: number) => { const w = canvas.clientWidth, h = canvas.clientHeight; ctx.clearRect(0, 0, w, h); points.forEach((p, i) => { const x = p.x * w + Math.sin(t * .0002 + p.phase) * 18, y = p.y * h + Math.cos(t * .00016 + p.phase) * 22; const dx = x - pointer.x, dy = y - pointer.y, dist = Math.hypot(dx, dy); const push = dist < 115 && dist > 0 ? (115 - dist) / 115 * 18 : 0; const px = x + dx / (dist || 1) * push, py = y + dy / (dist || 1) * push; ctx.beginPath(); ctx.arc(px, py, p.size, 0, Math.PI * 2); ctx.fillStyle = i % 5 === 0 ? 'rgba(200,255,95,.85)' : 'rgba(230,235,221,.48)'; ctx.fill(); if (i % 4 === 0) { points.slice(i + 1, i + 5).forEach(q => { const qx = q.x * w, qy = q.y * h, d = Math.hypot(px - qx, py - qy); if (d < 105) { ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(qx, qy); ctx.strokeStyle = `rgba(200,255,95,${(1 - d / 105) * .13})`; ctx.stroke() } }) } }); if (!reduce) raf = requestAnimationFrame(draw) }
-   resize(); draw(0); window.addEventListener('resize', resize); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointerleave', () => { pointer.x = -999 }); return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); canvas.removeEventListener('pointermove', move) }
- }, [])
+ const ref=useRef<HTMLCanvasElement>(null)
+ useEffect(()=>{
+  const canvas=ref.current,ctx=canvas?.getContext('2d');if(!canvas||!ctx)return
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');let raf=0,visible=true,hovered=false
+  const pointer={x:-999,y:-999};const count=window.innerWidth<700?34:window.innerWidth<1100?55:82
+  const points=Array.from({length:count},()=>({x:Math.random(),y:Math.random(),phase:Math.random()*6,size:.55+Math.random()*1.15}))
+  const resize=()=>{const ratio=Math.min(devicePixelRatio||1,1.25);canvas.width=canvas.clientWidth*ratio;canvas.height=canvas.clientHeight*ratio;ctx.setTransform(ratio,0,0,ratio,0,0)}
+  const move=(e:PointerEvent)=>{const r=canvas.getBoundingClientRect();pointer.x=e.clientX-r.left;pointer.y=e.clientY-r.top}
+  const frame=(t:number)=>{if(!visible||document.hidden||reduced.matches)return;const w=canvas.clientWidth,h=canvas.clientHeight;ctx.clearRect(0,0,w,h);points.forEach((p,i)=>{const x=p.x*w+Math.sin(t*.00018+p.phase)*13,y=p.y*h+Math.cos(t*.00015+p.phase)*16,dx=x-pointer.x,dy=y-pointer.y,d=Math.hypot(dx,dy),push=d<92&&d>0?(92-d)/92*13:0,px=x+dx/(d||1)*push,py=y+dy/(d||1)*push;ctx.beginPath();ctx.arc(px,py,p.size,0,Math.PI*2);ctx.fillStyle=i%6===0?'rgba(217,255,102,.78)':'rgba(230,235,221,.36)';ctx.fill();if(i%5===0)for(let j=i+1;j<Math.min(points.length,i+4);j++){const q=points[j],qx=q.x*w,qy=q.y*h,dist=Math.hypot(px-qx,py-qy);if(dist<88){ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(qx,qy);ctx.strokeStyle=`rgba(217,255,102,${(1-dist/88)*.11})`;ctx.stroke()}}});if(hovered)raf=requestAnimationFrame(frame)}
+  const play=()=>{cancelAnimationFrame(raf);if(visible&&hovered&&!document.hidden&&!reduced.matches)raf=requestAnimationFrame(frame)}
+  const observer=new IntersectionObserver(entries=>{visible=entries[0]?.isIntersecting??false;play()},{threshold:0});observer.observe(canvas)
+  const enter=()=>{hovered=true;play()};const leave=()=>{hovered=false;pointer.x=-999;pointer.y=-999;cancelAnimationFrame(raf);ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight)};resize();window.addEventListener('resize',resize);document.addEventListener('visibilitychange',play);reduced.addEventListener('change',play);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerenter',enter);canvas.addEventListener('pointerleave',leave)
+  return()=>{cancelAnimationFrame(raf);observer.disconnect();window.removeEventListener('resize',resize);document.removeEventListener('visibilitychange',play);reduced.removeEventListener('change',play);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerenter',enter);canvas.removeEventListener('pointerleave',leave)}
+ },[])
  return <canvas ref={ref} className="particle-canvas" aria-hidden="true"/>
 }
 
 export function StyleArt({ item, compact = false }: { item: Style; compact?: boolean }) {
- return <div className={`style-art art-${item.className} ${compact ? 'compact' : ''}`} aria-label={`${item.name} visual demonstration`}>
+ return <div className={`style-art art-${item.className} ${compact ? 'compact' : ''}`} role="img" aria-label={`Демонстрация стиля ${item.name}`}>
   <div className="art-orbit orbit-one"/><div className="art-orbit orbit-two"/>
-  {item.className === 'dashboard' ? <div className="dash-mini"><span>01 / signal</span><b>84.6</b><i/><div className="bars">{Array.from({length:12},(_,i)=><em key={i} style={{height:`${20+(i*17)%75}%`}}/>)}</div></div> : null}
-  {item.className === 'blueprint' ? <div className="plan-lines"><span>SECTION A—A</span><i/><b>1:50</b></div> : null}
-  {item.className === 'ascii' ? <pre className="ascii-art">{'░▒▓ ONDA ▓▒░\n  DIGITAL\n  STUDIO  '}</pre> : null}
-  {item.className === 'comic' ? <span className="comic-burst">POP!</span> : null}
+  {item.className === 'dashboard' ? <div className="dash-mini"><span>01 / СИГНАЛ</span><b>84.6</b><i/><div className="bars">{Array.from({length:12},(_,i)=><em key={i} style={{height:`${20+(i*17)%75}%`}}/>)}</div></div> : null}
+  {item.className === 'blueprint' ? <div className="plan-lines"><span>СЕЧЕНИЕ А—А</span><i/><b>1:50</b></div> : null}
+  {item.className === 'ascii' ? <pre className="ascii-art">{'░▒▓ SVIROXK ▓▒░\n  ЦИФРОВОЙ\n  ДИЗАЙН  '}</pre> : null}
+  {item.className === 'comic' ? <span className="comic-burst">УХ!</span> : null}
   {item.className === 'pixel' ? <div className="pixel-tiles">{Array.from({length:25},(_,i)=><i key={i}/>)}</div> : null}
   {item.className === 'bauhaus' ? <><i className="bauhaus-shape circle"/><i className="bauhaus-shape square"/><i className="bauhaus-shape triangle"/></> : null}
-  {item.className === 'brutal' ? <div className="brutal-sticker">NO<br/>RULES</div> : null}
+  {item.className === 'brutal' ? <div className="brutal-sticker">БЕЗ<br/>РАМОК</div> : null}
   {item.className === 'deco' ? <div className="deco-sun">✳</div> : null}
   {item.className === 'isometric' ? <div className="iso-cube"><i/><i/><i/></div> : null}
   {item.className === 'wireframe' ? <div className="wire-sphere"/> : null}
@@ -39,9 +41,9 @@ export function StyleArt({ item, compact = false }: { item: Style; compact?: boo
   {item.className === 'maximal' ? <span className="maximal-star">✳</span> : null}
   {item.className === 'particle' ? <div className="particle-swarm">{Array.from({length:18},(_,i)=><i key={i} style={{'--n':i} as CSSProperties}/>)}</div> : null}
   {item.className === 'holo' ? <div className="holo-disc"/> : null}
-  {item.className === 'neon' ? <span className="neon-word">NIGHT<br/>SHIFT</span> : null}
+  {item.className === 'neon' ? <span className="neon-word">НОЧНОЙ<br/>ЭФИР</span> : null}
   {item.className === 'glass' ? <div className="glass-stack"><i/><i/><i/></div> : null}
-  {item.className === 'editorial' ? <div className="editorial-type">Field<br/>notes<span>VOL. 01</span></div> : null}
+  {item.className === 'editorial' ? <div className="editorial-type">Полевые<br/>заметки<span>ВЫПУСК 01</span></div> : null}
   {item.className === 'aurora' ? <div className="aurora-ribbon"/> : null}
   {item.className === 'gradient' ? <div className="gradient-blob"/> : null}
   <span className="art-index">{item.eyebrow.split('/')[0]}</span><span className="art-word">{item.name.split(' ')[0]}<sup>®</sup></span>
@@ -53,19 +55,13 @@ export function StyleCard({ item, index = 0 }: { item: Style; index?: number }) 
 }
 
 export function ProjectArtwork({ slug, compact = false }: { slug: string; compact?: boolean }) {
- const labels: Record<string, string> = { morrow:'MORROW / botanical light study', objects:'OBJECTS / kinetic still life', after:'AFTER HOURS / live frequency', form:'FORM / architectural study', tinyworlds:'TINY WORLDS / soft landscape', still:'STILL / prismatic product study' }
- return <div className={`project-art scene-${slug} ${compact ? 'scene-compact' : ''}`} role="img" aria-label={labels[slug] ?? 'ONDA original digital art direction'}>
-  <div className="scene-grid"/><div className="scene-noise"/>
-  {slug === 'morrow' && <div className="morrow-world"><i/><b/><span/></div>}
-  {slug === 'objects' && <div className="objects-world"><i/><b/><span/><em/></div>}
-  {slug === 'after' && <div className="after-world"><i/>{Array.from({length:37},(_,i)=><b key={i} style={{'--bar':`${18 + Math.abs(Math.sin(i*.59))*78}%`,'--n':i} as CSSProperties}/>) }<span>23:48 ━━━●━━ ◀ Ⅱ ▶</span></div>}
-  {slug === 'form' && <div className="form-world"><i/><b/><span/><em/><small>SECTION 01 / SCALE 1:100</small></div>}
-  {slug === 'tinyworlds' && <div className="tiny-world"><i/><b/><span/><em/><small/></div>}
-  {slug === 'still' && <div className="still-world"><i/><b/><span/><em/></div>}
-  <span className="scene-index">ONDA / 0{Math.max(1, ['morrow','objects','after','form','tinyworlds','still'].indexOf(slug)+1)}</span>
- </div>
+ const [tilt,setTilt]=useState({x:0,y:0});const labels: Record<string,string>={morrow:'Морроу / предметы для повседневной жизни',objects:'Предметный дизайн / объёмная композиция',after:'Ночное радио / визуализация эфира',form:'Архитектура / чертёжная сцена',tinyworlds:'Маленькие миры / учебная карта',still:'Тихий ритуал / концепция продукта',volt:'Вольт / электромобиль',northstar:'Полярис / карта путешествия',ledger:'Леджер / обзор финансов',pulse:'Пульс / панель данных',saffron:'Шафран и соль / меню ресторана',folio:'Личный архив / творческое портфолио',kinetic:'Движение формы / цифровой эксперимент',common:'Общее дело / корпоративный сайт',orbit:'Орбита / карта обучения',frame:'Кадр за кадром / программа фестиваля',mechanica:'Механика света / редактор графики',civic:'Город рядом / схема городской среды',atelier:'Ателье открытого кода / студия',signal:'Сигнал / музыкальный архив',commonwealth:'Общее пространство / архитектурная схема',daybreak:'Первый свет / уход за кожей',fieldnotes:'Полевые заметки / редакционный журнал',terracotta:'Терракота / каталог предметов',orbitlab:'Лаборатория орбиты / учебный интерфейс'}
+ return <div className={`project-art scene-${slug} ${compact?'scene-compact':''}`} role="img" aria-label={labels[slug]??'Авторская визуальная концепция Студии SVIROXK'} onPointerMove={e=>{if(compact||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;const r=e.currentTarget.getBoundingClientRect();setTilt({x:(e.clientX-r.left)/r.width-.5,y:(e.clientY-r.top)/r.height-.5})}} onPointerLeave={()=>setTilt({x:0,y:0})} style={{'--tilt-x':`${tilt.x*5}deg`,'--tilt-y':`${tilt.y*-5}deg`,'--scene-index':String(Math.max(1,['morrow','objects','after','form','tinyworlds','still','volt','northstar','ledger','pulse','saffron','folio','kinetic','common','orbit','frame','mechanica','civic','atelier','signal','commonwealth','daybreak','fieldnotes','terracotta','orbitlab'].indexOf(slug)+1))} as CSSProperties}><div className="scene-grid"/><div className="scene-noise"/>
+  {['morrow','daybreak'].includes(slug)&&<div className="morrow-world"><i/><b/><span/></div>}{['objects','terracotta'].includes(slug)&&<div className="objects-world"><i/><b/><span/><em/></div>}{['after','signal'].includes(slug)&&<div className="after-world"><i/>{Array.from({length:37},(_,i)=><b key={i} style={{'--bar':`${18+Math.abs(Math.sin(i*.59))*78}%`,'--n':i} as CSSProperties}/>)}<span>23:48 ━━━●━━ ◀ Ⅱ ▶</span></div>}{['form','commonwealth'].includes(slug)&&<div className="form-world"><i/><b/><span/><em/><small>СХЕМА 01 / МАСШТАБ 1:100</small></div>}{['tinyworlds','northstar','civic'].includes(slug)&&<div className="tiny-world"><i/><b/><span/><em/><small/></div>}{['still','saffron'].includes(slug)&&<div className="still-world"><i/><b/><span/><em/></div>}
+  {slug==='volt'&&<div className="volt-world"><i/><b/><span/><em>ВОЛЬТ / ЭЛЕКТРИЧЕСКИЙ ГОРОДСКОЙ АВТОМОБИЛЬ</em></div>}{slug==='ledger'&&<div className="ledger-world"><i/><b>48 290</b><span>{Array.from({length:16},(_,i)=><em key={i} style={{'--bar':`${20+Math.abs(Math.sin(i*.47))*72}%`} as CSSProperties}/>)}</span></div>}{slug==='pulse'&&<div className="pulse-world"><i/><b/><span/><em/></div>}{['folio','fieldnotes'].includes(slug)&&<div className="folio-world"><i/><b/><span>ЗАПИСИ / АРХИВ / 2026</span></div>}{['kinetic','mechanica'].includes(slug)&&<div className="kinetic-world"><i/><b/><span/><em/></div>}{['atelier','common'].includes(slug)&&<div className="atelier-world"><i/><b/><span/><em/></div>}{['orbit','orbitlab'].includes(slug)&&<div className="orbit-world"><i/><b/><span/><em/></div>}{slug==='frame'&&<div className="frame-world"><i/><b/><span/><em>ПРОГРАММА / КИНОФЕСТИВАЛЬ</em></div>}
+  <span className="scene-index">SVIROXK / {String(Math.max(1,['morrow','objects','after','form','tinyworlds','still','volt','northstar','ledger','pulse','saffron','folio','kinetic','common','orbit','frame','mechanica','civic','atelier','signal','commonwealth','daybreak','fieldnotes','terracotta','orbitlab'].indexOf(slug)+1)).padStart(2,'0')}</span></div>
 }
 
 export function ProjectCard({ project, index = 0 }: { project: Project; index?: number }) {
- return <motion.article className={`project-card project-${project.tone}`} initial={{opacity:0,y:36}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.12}} transition={{duration:.7,delay:(index%2)*.12}}><Link to={`/work/${project.slug}`} className="project-link"><div className="project-image"><ProjectArtwork slug={project.slug} compact/><span className="project-open"><MoveUpRight size={19}/></span><span className="concept-tag">Original art direction · 2025</span></div><div className="project-copy"><div><span className="eyebrow">{project.category} / {project.style}</span><h3>{project.title}</h3></div><p>{project.kind}</p></div></Link></motion.article>
+ return <motion.article className={`project-card project-${project.tone}`} whileHover={{y:-9}} initial={{opacity:0,y:36}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.12}} transition={{duration:.7,delay:(index%2)*.12}}><Link to={`/work/${project.slug}`} className="project-link"><div className="project-image"><ProjectArtwork slug={project.slug} compact/><span className="project-open"><MoveUpRight size={19}/></span><span className="concept-tag">Концептуальный проект · SVIROXK</span></div><div className="project-copy"><div><span className="eyebrow">{project.category} / {project.style}</span><h3>{project.title}</h3></div><p>{project.kind}</p></div></Link></motion.article>
 }
