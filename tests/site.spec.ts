@@ -73,6 +73,12 @@ test('style previews show one title and a legible interface example', async ({pa
   await expect(card.locator('.style-card-info h3')).toHaveText('Неонуар')
 })
 
+test('contact address uses the studio inbox configured for production', async ({page}) => {
+  await page.goto('/#/contact',{waitUntil:'domcontentloaded'})
+  await expect(page.locator('.contact-email')).toHaveAttribute('href','mailto:sviroxk@gmail.com')
+  await expect(page.locator('.contact-email')).toContainText('sviroxk@gmail.com')
+})
+
 test('case screens switch tabs and device layout; project style preselects order form', async ({page}) => {
   await page.goto('/#/work/morrow',{waitUntil:'domcontentloaded'})
   await expect(page.locator('[data-project-screens]')).toBeVisible()
