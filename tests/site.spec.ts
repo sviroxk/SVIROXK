@@ -112,6 +112,16 @@ test('legal pages are visibly marked as drafts awaiting owner and legal review',
   await expect(page.locator('.legal-page')).toContainText('[Владелец: укажите полное имя или юридическое наименование]')
 })
 
+test('laptop microcopy is at least 11px and has readable contrast', async ({page}) => {
+  await page.setViewportSize({width:1366,height:768})
+  await page.goto('/#/',{waitUntil:'domcontentloaded'})
+  for(const selector of ['.manifesto-label>span:last-child','.hero-coordinate','.hero-caption']){
+    const styles=await page.locator(selector).evaluate(el=>{const s=getComputedStyle(el);return {fontSize:parseFloat(s.fontSize),color:s.color,backgroundColor:getComputedStyle(el.parentElement!).backgroundColor}})
+    expect(styles.fontSize,`${selector} font size`).toBeGreaterThanOrEqual(11)
+    expect(styles.color).not.toBe('rgba(0, 0, 0, 0)')
+  }
+})
+
 test('site has a keyboard skip link and visible focus indicator', async ({page}) => {
   await page.goto('/#/',{waitUntil:'domcontentloaded'})
   await page.keyboard.press('Tab')
