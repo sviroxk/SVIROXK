@@ -45,7 +45,7 @@ test('cosmic field contains triple-density stars pulled toward the cursor', asyn
   const canvas=page.locator('.cosmic-background')
   const density=await canvas.evaluate(el=>{const ctx=(el as HTMLCanvasElement).getContext('2d')!;let arcs=0;const original=ctx.arc.bind(ctx);ctx.arc=(...args:Parameters<CanvasRenderingContext2D['arc']>)=>{arcs++;return original(...args)};return new Promise<number>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(arcs))))})
   expect(density).toBeGreaterThan(200)
-  const before=await canvas.evaluate(el=>{const c=el as HTMLCanvasElement;const g=c.getContext('2d')!;g.clearRect(0,0,c.width,c.height);return g.getImageData(0,0,Math.min(c.width,240),Math.min(c.height,240)).data.reduce((sum,v)=>sum+(v>20?1:0),0)})
+  const before=await canvas.evaluate(el=>{const c=el as HTMLCanvasElement;const g=c.getContext('2d')!;return g.getImageData(0,0,Math.min(c.width,240),Math.min(c.height,240)).data.reduce((sum,v)=>sum+(v>20?1:0),0)})
   await page.mouse.move(195,195);await page.waitForTimeout(300)
   const after=await canvas.evaluate(el=>{const c=el as HTMLCanvasElement;const g=c.getContext('2d')!;return g.getImageData(0,0,Math.min(c.width,240),Math.min(c.height,240)).data.reduce((sum,v)=>sum+(v>20?1:0),0)})
   expect(after).toBeGreaterThan(0);expect(before).toBeGreaterThan(0)
@@ -79,6 +79,55 @@ test('contact address uses the studio inbox configured for production', async ({
   await expect(page.locator('.contact-email')).toContainText('sviroxk@gmail.com')
 })
 
+test('order form reports success only after the delivery endpoint confirms receipt', async ({page}) => {
+  await page.route('https://formsubmit.co/ajax/sviroxk@gmail.com',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:'true',message:'ok'})}))
+  await page.goto('/#/order',{waitUntil:'domcontentloaded'})
+  await page.getByLabel('ИМЯ ИЛИ НАЗВАНИЕ КОМПАНИИ').fill('Тестовый посетитель')
+  await page.getByLabel('КОНТАКТ ДЛЯ ОТВЕТА').fill('visitor@example.com')
+  await page.getByLabel('ТИП ПРОЕКТА').selectOption({label:'Лендинг'})
+  await page.getByLabel('ОПИСАНИЕ ЗАДАЧИ').fill('Проверка тестовой отправки заявки.')
+  await page.getByLabel(/Передаю эти сведения студии/).check()
+  await page.waitForTimeout(2600)
+  await page.getByRole('button',{name:/Отправить запрос/}).click()
+  await expect(page.getByRole('status')).toContainText('Сервис подтвердил приём заявки.')
+})
+
+test('order form reports delivery errors without marking the inquiry as sent', async ({page}) => {
+  await page.route('https://formsubmit.co/ajax/sviroxk@gmail.com',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({success:'false',message:'unavailable'})}))
+  await page.goto('/#/order',{waitUntil:'domcontentloaded'})
+  await page.getByLabel('ИМЯ ИЛИ НАЗВАНИЕ КОМПАНИИ').fill('Тестовый посетитель')
+  await page.getByLabel('КОНТАКТ ДЛЯ ОТВЕТА').fill('visitor@example.com')
+  await page.getByLabel('ТИП ПРОЕКТА').selectOption({label:'Лендинг'})
+  await page.getByLabel('ОПИСАНИЕ ЗАДАЧИ').fill('Проверка ошибки тестовой доставки.')
+  await page.getByLabel(/Передаю эти сведения студии/).check()
+  await page.waitForTimeout(2600)
+  await page.getByRole('button',{name:/Отправить запрос/}).click()
+  await expect(page.getByRole('status')).toContainText('не подтвердил приём')
+  await expect(page.getByRole('status')).not.toContainText('Сервис подтвердил приём заявки.')
+})
+
+test('legal pages are visibly marked as drafts awaiting owner and legal review', async ({page}) => {
+  await page.goto('/#/privacy',{waitUntil:'domcontentloaded'})
+  await expect(page.getByRole('note',{name:'Юридические документы требуют проверки'})).toContainText('Требует заполнения и юридической проверки')
+  await expect(page.locator('.legal-page')).toContainText('[Владелец: укажите полное имя или юридическое наименование]')
+})
+
+test('site has a keyboard skip link and visible focus indicator', async ({page}) => {
+  await page.goto('/#/',{waitUntil:'domcontentloaded'})
+  await page.keyboard.press('Tab')
+  await expect(page.locator('.skip-link')).toBeFocused()
+  await expect(page.locator('.skip-link')).toBeVisible()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('main')).toBeFocused()
+})
+
+test('route-specific metadata has canonical URL and current route title', async ({page}) => {
+  await page.goto('/#/work/morrow',{waitUntil:'domcontentloaded'})
+  await expect(page).toHaveTitle(/Морроу — жить медленнее/)
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://sviroxk.github.io/SVIROXK/work/morrow/')
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content','https://sviroxk.github.io/SVIROXK/work/morrow/')
+})
+
 test('case screens switch tabs and device layout; project style preselects order form', async ({page}) => {
   await page.goto('/#/work/morrow',{waitUntil:'domcontentloaded'})
   await expect(page.locator('[data-project-screens]')).toBeVisible()
@@ -86,6 +135,11 @@ test('case screens switch tabs and device layout; project style preselects order
   const first=await heading.innerText()
   await page.getByRole('tab').nth(1).click()
   await expect(heading).not.toHaveText(first)
+  await expect(page.locator('[data-screen-page="1"] .variant-card')).toHaveCount(3)
+  await page.getByRole('tab').nth(2).click()
+  await expect(page.locator('[data-screen-page="2"] .variant-detail-copy')).toBeVisible()
+  await page.getByRole('tab').nth(3).click()
+  await expect(page.locator('[data-screen-page="3"] .variant-form-row')).toBeVisible()
   await page.getByRole('button',{name:'Телефон'}).click()
   await expect(page.getByRole('button',{name:'Телефон'})).toHaveAttribute('aria-pressed','true')
   await page.goto('/#/work/morrow')

@@ -1,8 +1,9 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 
 const data = await readFile(new URL('../src/data.ts', import.meta.url), 'utf8')
 const visual = await readFile(new URL('../src/components/Visual.tsx', import.meta.url), 'utf8')
-const css = await readFile(new URL('../src/styles.css', import.meta.url), 'utf8')
+const styleFiles = await readdir(new URL('../src/styles', import.meta.url))
+const css = [await readFile(new URL('../src/styles.css', import.meta.url), 'utf8'), ...await Promise.all(styleFiles.filter(file => file.endsWith('.css')).map(file => readFile(new URL(`../src/styles/${file}`, import.meta.url), 'utf8')))].join('\n')
 const experience = await readFile(new URL('../src/experience.ts', import.meta.url), 'utf8')
 const extras = await readFile(new URL('../src/caseExtras.ts', import.meta.url), 'utf8')
 const styleBlock = data.slice(data.indexOf('const baseStyles:Style[]='), data.indexOf('export const styles:Style[]='))
@@ -16,7 +17,8 @@ const visualRegistry = visual.match(/STYLE_VISUAL_CLASS_NAMES = \[([^\]]+)\]/)?.
 const availableVisualClasses = new Set([...visualRegistry.matchAll(/'([^']+)'/g)].map(m => m[1]))
 const styleArtBlock=visual.slice(visual.indexOf('export function StyleArt'),visual.indexOf('export function StyleCard'))
 const visualMap=visual.match(/export const STYLE_ART_COMPOSITIONS=\{([\s\S]*?)\n\} satisfies Record<string,React\.ReactNode>/)?.[1]??''
-const renderedStyleSlugs=new Set([...visualMap.matchAll(/^\s*([a-zA-Z-]+):</gm)].map(m=>m[1]))
+const compositionKeys=visual.match(/const STYLE_COMPOSITION_KEY:Record<string,keyof typeof STYLE_ART_COMPOSITIONS>=\{([^}]+)\}/)?.[1]??''
+const renderedStyleSlugs=new Set([...compositionKeys.matchAll(/(?:'([^']+)'|([a-zA-Z-]+)):(?:'[^']+'|[a-zA-Z]+)/g)].map(m=>m[1]??m[2]))
 const sceneRegistry = visual.match(/const projectSceneNames:Record<string,string>=\{([^}]+)\}/)?.[1] ?? ''
 const baseRegistry = visual.match(/PROJECT_SCENE_BASE_CLASSES:Record<string,string>=\{([^}]+)\}/)?.[1] ?? ''
 const scenes = new Map([...sceneRegistry.matchAll(/([a-zA-Z]+):'([^']+)'/g)].map(m => [m[1],m[2]]))

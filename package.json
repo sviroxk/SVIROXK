@@ -7,6 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
     "pages:seo": "node scripts/prepare-pages.mjs",
+    "check:pages": "node scripts/check-pages-metadata.mjs",
     "check:visuals": "node scripts/check-visual-registry.mjs",
     "test:e2e": "playwright test",
     "preview": "vite preview --host 0.0.0.0"

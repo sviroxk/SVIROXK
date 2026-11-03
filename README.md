@@ -4,9 +4,10 @@
 
 ## Сайт и публикация
 
-- Сайт: [Открыть Студию SVIROXK](https://winchestersdc79-hub.github.io/SVIROXK/)
-- Репозиторий: https://github.com/winchestersdc79-hub/SVIROXK
+- Сайт: [Открыть Студию SVIROXK](https://sviroxk.github.io/SVIROXK/)
+- Репозиторий: https://github.com/SVIROXK/SVIROXK
 - GitHub Pages публикует production-сборку `dist/` через GitHub Actions при изменениях в `main`.
+- Генератор строит статические метаданные и HTML для разделов, услуг и кейсов; интерактивный интерфейс сохраняет HashRouter на GitHub Pages.
 - Для страниц и ресурсов используется базовый путь `/SVIROXK/`.
 - Файл Google Search Console: `/google1b98991cb98a846f.html`.
 
@@ -26,7 +27,7 @@
 
 ## Форма и обработка обращений
 
-Production-сборка использует GitHub Actions Variables `VITE_CONTACT_ENDPOINT` и `VITE_CONTACT_EMAIL`. Сейчас endpoint настроен на AJAX FormSubmit с получателем `sviroxk@gmail.com`; поставщик может запросить подтверждение адреса при первой доставке. Успех показывается только после успешного ответа endpoint.
+Production-сборка использует GitHub Actions Variables `VITE_CONTACT_ENDPOINT` и `VITE_CONTACT_EMAIL`; значения по умолчанию workflow используют AJAX FormSubmit и публичный адрес `sviroxk@gmail.com`. Владелец должен проверить переменные и подтвердить адрес FormSubmit до приёма реальных заявок. Если endpoint не настроен, но задан email, форма открывает почтовое приложение с подготовленным письмом; отправка не считается подтверждённой до действия посетителя. При настроенном endpoint успех отображается только после успешного ответа поставщика.
 
 Honeypot, минимальное время заполнения и тайм-аут — клиентские базовые меры; защита от прямых запросов и частотные ограничения зависят от сервиса доставки. Значения `VITE_*` входят в открытый JavaScript браузерной сборки: не помещайте туда секреты. Локальная история обращений хранится только в браузере посетителя; централизованной базы или клиентского кабинета нет.
 
@@ -38,8 +39,10 @@ Honeypot, минимальное время заполнения и тайм-а�
 
 - `npm ci` — установка зависимостей.
 - `npm run build` — TypeScript и production-сборка.
-- `npm run check:visuals` — соответствие проектов, стилей, графических сцен и услуг.
-- `npm run test:e2e` — Playwright-проверки маршрутов, UI-сценариев и экранов 320×720, 360×800, 390×844, 768×1024, 1024×768, 1280×800, 1440×900 и 1920×1080.
+- `node scripts/render-routes.mjs` — статические route-specific HTML titles, descriptions и canonical для GitHub Pages.
+- `npm run check:pages` — актуальность GitHub Pages URL, canonical и Open Graph.
+- `npm run check:visuals` — соответствие проектов, стилей, графических сцен и услуг; запускается в GitHub Actions перед публикацией.
+- `npm run test:e2e` — Playwright-проверки маршрутов, UI-сценариев, доставки/ошибок формы и экранов 320×720, 360×800, 390×844, 768×1024, 1024×768, 1280×800, 1440×900 и 1920×1080; запускается в GitHub Actions перед публикацией.
 - Скриншоты «до/после» находятся в `artifacts/screenshots/before/` и `artifacts/screenshots/after/`; дополнительные снимки исправлений — в `artifacts/screenshots/fixes/`.
 
 Последний опубликованный commit, проверенный GitHub Actions на момент обновления README: `8510e1b`. Более поздние локальные исправления отображения звёзд и каталога стилей ещё требуют повторных E2E-проверок и публикации.

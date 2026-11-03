@@ -5,6 +5,10 @@ import App from './App'
 import './styles.css'
 
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '')
+if (typeof window !== 'undefined' && location.pathname !== `${baseUrl}/` && !location.hash) {
+  const routePath = location.pathname.startsWith(`${baseUrl}/`) ? location.pathname.slice(baseUrl.length + 1).replace(/\/$/, '') : ''
+  if (routePath) location.replace(`${baseUrl}/#/${routePath}${location.search}`)
+}
 if (typeof window !== 'undefined' && sessionStorage.redirect) {
   const redirected = sessionStorage.redirect as string
   delete sessionStorage.redirect

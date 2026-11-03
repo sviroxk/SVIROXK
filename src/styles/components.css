@@ -1,0 +1,58 @@
+/* Focus visibility, readable utility copy, and unified SVIROXK mark */
+.skip-link{position:fixed;left:12px;top:8px;z-index:1000;padding:12px 16px;transform:translateY(-150%);background:#c8ed66;color:#11150d;font-weight:700}
+.skip-link:focus{transform:translateY(0)}
+:where(a, button, input, textarea, select, summary):focus-visible{outline:3px solid #c8ed66;outline-offset:4px;border-radius:3px}
+.brand-mark{grid-row:span 2;width:28px;height:28px;display:block}
+.brand-orb{display:none}
+.sviroxk-mark-image{width:min(42vw,210px);aspect-ratio:1;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 12px 36px #c8ed6620)}
+.sviroxk-mark{display:grid;place-items:center}
+.sviroxk-mark small{position:absolute;top:calc(100% + 6px);right:0;font:8px var(--mono);letter-spacing:.12em;color:#bdc7d7}
+.footer-logo{display:inline-flex;align-items:center;gap:10px}
+.footer-logo img{width:32px;height:32px}
+.cta-mark{width:clamp(120px,18vw,220px);height:auto;aspect-ratio:1;object-fit:contain}
+.service-main p,.service-tags,.manifesto-label>span:last-child{font-size:clamp(12px,1.15vw,15px);line-height:1.7}
+.screen-nav,.screen-index,.screen-copy p,.screen-demo-link,.screen-foot,.screen-disclaimer,.screen-tabs button b{font-size:clamp(11px,.9vw,14px)}
+.screen-copy h3{font-size:clamp(28px,4vw,54px)}
+.screen-demo-link{display:inline-block;margin-top:12px;padding:8px 0;border-bottom:1px solid #c8ed66;color:#f4f6fa}
+.screen-stage{background:#0b111b;border:1px solid #ffffff24;border-radius:8px}
+.screen-browser{overflow:hidden;border-radius:5px}
+.screen-variant{position:relative;display:flex;flex-direction:column;gap:12px;width:100%;height:100%;min-height:190px;padding:clamp(12px,2vw,24px);overflow:hidden;background:linear-gradient(145deg,#111a27,#202b37);color:#f4f6fa}
+.screen-variant>.project-art{opacity:.42}
+.screen-variant-home{justify-content:flex-end}
+.screen-variant-home>b{position:relative;z-index:1;font-size:clamp(20px,3vw,38px);line-height:1.1;max-width:85%}
+.screen-variant-home>span,.screen-variant-home>i,.screen-variant-action small{position:relative;z-index:1;font:11px/1.5 var(--mono);color:#d4deec;font-style:normal}
+.variant-action{position:relative;z-index:1;align-self:flex-start;border-bottom:1px solid #c8ed66;padding:8px 0;color:#d6f68b;font:11px var(--mono)}
+.variant-toolbar{position:relative;z-index:1;display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #ffffff38;padding-bottom:10px;font:10px var(--mono)}
+.variant-toolbar>span{color:#c8ed66;text-align:right}
+.variant-cards{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;flex:1;align-items:center}
+.variant-card{min-height:95px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:10px;background:linear-gradient(145deg,#ffffff18,#ffffff08);border:1px solid #ffffff35}
+.variant-card-2{transform:translateY(12px)}
+.variant-card-3{transform:translateY(-8px)}
+.variant-card i,.variant-card span,.variant-detail-copy>span,.variant-detail-meta{font:9px var(--mono);color:#c3cede}
+.variant-card b{font-size:clamp(11px,1.1vw,16px);line-height:1.25}
+.variant-detail-copy{position:relative;z-index:1;align-self:flex-end;width:min(80%,440px);padding:14px;background:#070c14eF;border:1px solid #ffffff32}
+.variant-detail-copy>b{display:block;margin:8px 0;font-size:clamp(19px,2.6vw,32px)}
+.variant-detail-copy p,.screen-variant-action p{font-size:12px;line-height:1.6;color:#c5cfdd}
+.variant-detail-meta{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #ffffff30;padding-top:9px}
+.screen-variant-action h4{position:relative;z-index:1;max-width:700px;margin:5px 0;font-size:clamp(22px,3.6vw,46px);line-height:1.05}
+.variant-form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto}
+.variant-form-row span{padding:9px;border:1px solid #ffffff45;color:#c5cfdd;font-size:10px}
+.variant-submit{align-self:flex-start;padding:10px 16px;background:#c8ed66;color:#11150d;font:11px var(--mono)}
+.screen-tabs button{min-height:50px}
+.legal-draft-banner{position:sticky;top:0;z-index:20;padding:10px 18px;background:#2a2119;color:#f3e5d1;border-bottom:1px solid #d59f63;font:13px/1.5 Manrope,sans-serif}
+@media(max-width:700px){
+ .brand-mark{width:25px;height:25px}
+ .sviroxk-mark-image{width:min(35vw,150px)}
+ .sviroxk-mark small{font-size:7px}
+ .footer-logo img{width:26px;height:26px}
+ .service-main p,.service-tags,.manifesto-label>span:last-child{font-size:12px}
+ .screen-variant{min-height:210px;padding:12px}
+ .variant-card{min-height:82px;padding:7px}
+ .variant-card b{font-size:11px}
+ .variant-detail-copy{width:94%;padding:10px}
+ .variant-form-row span{font-size:9px;padding:7px}
+ .screen-stage.mobile .variant-cards{gap:5px}
+ .screen-stage.mobile .variant-card{min-height:85px}
+ .screen-stage.mobile .variant-card span{font-size:7px}
+ .screen-tabs button{min-height:56px}
+}
