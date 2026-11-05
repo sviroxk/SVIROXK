@@ -23,6 +23,24 @@ export function StyleCompare() {
 }
 
 export function Configurator() {
+ const [query]=useSearchParams()
+ return query.get('service')==='identity'?<IdentityConfigurator/>:<WebsiteConfigurator/>
+}
+
+const IDENTITY_CONFIG_KEY='sviroxk-identity-config-v1'
+const identityOptions=['Логотип и адаптивные варианты','Цветовая палитра (HEX / RGB)','Типографическая система','Графическая система и паттерны','Иконографика','Правила и компоненты для сайта','Оформление социальных сетей','Брендбук или гайдлайн','Исходные и экспортированные файлы']
+function readIdentityConfig(){try{const value=JSON.parse(localStorage.getItem(IDENTITY_CONFIG_KEY)||'null') as {selected?:string[];notes?:string}|null;return {selected:identityOptions.filter(item=>value?.selected?.includes(item)),notes:value?.notes??''}}catch{return {selected:[],notes:''}}}
+function IdentityConfigurator(){
+ const [query]=useSearchParams();const [state,setState]=useState(readIdentityConfig);const [copied,setCopied]=useState(false)
+ useEffect(()=>{try{localStorage.setItem(IDENTITY_CONFIG_KEY,JSON.stringify(state))}catch{/* The current in-memory selection still works when browser storage is blocked. */}},[state])
+ const toggle=(item:string)=>setState(current=>({...current,selected:current.selected.includes(item)?current.selected.filter(value=>value!==item):[...current.selected,item]}))
+ const spec=`Предварительный бриф Студии SVIROXK\nУслуга: Цифровая айдентика\nВыбранные элементы: ${state.selected.join(', ')||'пока не выбраны'}\nДополнительные требования: ${state.notes.trim()||'—'}\n\nСостав и форматы финальной передачи согласуются отдельно; это не коммерческое предложение.`
+ const copy=async()=>{try{await navigator.clipboard.writeText(spec);setCopied(true);window.setTimeout(()=>setCopied(false),1800)}catch{setCopied(false)}}
+ function orderUrl(){const params=new URLSearchParams({service:'identity',brief:spec});const style=query.get('style');if(style)params.set('style',style);return `/order?${params.toString()}`}
+ return <><PageIntro index="09 / DIGITAL IDENTITY" title={<>Соберём<br/><em>состав айдентики.</em></>} text="Выберите материалы для вашего бренда. Выбор сохранится в этом браузере и попадёт в бриф при переходе к заказу."/><section className="tool-section identity-configurator section-pad"><div className="identity-config-intro"><span className="eyebrow">НАСТРОЙКА СОСТАВА / НЕ ЦЕНА</span><h2>Что должно<br/><em>войти в систему?</em></h2><p>Отметьте необходимые элементы. Это предварительный список для обсуждения: окончательный объём согласуется индивидуально.</p></div><fieldset className="identity-config-options"><legend>ЭЛЕМЕНТЫ АЙДЕНТИКИ</legend>{identityOptions.map((item,index)=><label className={state.selected.includes(item)?'selected':''} key={item}><input type="checkbox" checked={state.selected.includes(item)} onChange={()=>toggle(item)}/><span className="identity-config-number">{String(index+1).padStart(2,'0')}</span><span>{item}</span><Check size={17} aria-hidden="true"/></label>)}</fieldset><label className="identity-config-notes">ДОПОЛНИТЕЛЬНЫЕ ТРЕБОВАНИЯ<textarea rows={4} value={state.notes} onChange={event=>setState(current=>({...current,notes:event.target.value}))} placeholder="Например: существующий логотип, нужные носители, ограничения по шрифтам, цифровые продукты."/></label><div className="estimate-panel identity-config-result"><span className="eyebrow">ПРЕДВАРИТЕЛЬНЫЙ БРИФ / {state.selected.length} ВЫБРАНО</span><h2>Цифровая айдентика</h2><p>Выбор элементов ориентирует обсуждение, но не фиксирует цену, сроки или обязательный состав работ.</p><pre data-identity-brief>{spec}</pre><div className="estimate-actions"><button className="button-dark" type="button" onClick={copy}><Copy size={15}/>{copied?'Бриф скопирован':'Скопировать бриф'}</button><Link className="button-dark" to={orderUrl()}>Передать в заявку <MoveUpRight size={15}/></Link></div></div></section></>
+}
+
+function WebsiteConfigurator() {
  const [query]=useSearchParams();const [kind,setKind]=useState(()=>{const slug=query.get('service');return serviceDetails.find(item=>item.slug===slug)?.name??''});const[industry,setIndustry]=useState('');const[style,setStyle]=useState('');const[pages,setPages]=useState<string[]>(['Главная','Контакты']);const[features,setFeatures]=useState<string[]>(['Форма проекта']);const[notes,setNotes]=useState('');const[copied,setCopied]=useState(false)
  const toggle=(list:string[],setter:(v:string[])=>void,item:string)=>setter(list.includes(item)?list.filter(x=>x!==item):[...list,item])
  const spec=`Предварительный бриф Студии SVIROXK\nСфера: ${industry||'не выбрана'}\nФормат: ${kind||'не выбран'}\nСтиль: ${styles.find(x=>x.slug===style)?.localName||'подбор студии'}\nСтраницы: ${pages.join(', ')||'не выбраны'}\nФункции: ${features.join(', ')||'не выбраны'}\nДополнительно: ${notes||'—'}\n\nЭто описание состава, не коммерческое предложение.`
