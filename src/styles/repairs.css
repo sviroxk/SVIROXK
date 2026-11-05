@@ -23,3 +23,20 @@
 .style-card .style-art{height:235px}
 .style-card-info{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.style-card-info>div{min-width:0}.style-card-info h3{line-height:1.2;overflow-wrap:anywhere}
 @media(max-width:700px){.style-card .style-art,.atlas-grid .style-art,.style-mosaic .style-art{height:clamp(190px,53vw,230px)!important}.style-art .style-ui-sample{left:7%!important;right:7%!important;top:25%!important;min-height:80px!important;padding:8px!important;gap:5px!important}.style-art .style-ui-sample>b{font-size:10px!important}.style-art .style-art-caption{left:9px!important;right:9px!important;bottom:7px!important}.style-art .style-art-caption strong{font-size:9px!important}.style-art .style-art-caption span{font-size:6px!important}}
+
+
+/* Mobile overrides for desktop gallery column and stagger selectors. */
+@media(max-width:950px){
+ .project-grid:not(.style-examples-grid)>.project-card,
+ .project-grid:not(.style-examples-grid)>.project-card:nth-child(n),
+ .gallery-grid>.project-card:nth-child(n),
+ .home-projects>.project-card:nth-child(n),
+ .service-related-work .project-grid>.project-card:nth-child(n){grid-column:1/-1!important;margin:0!important;min-width:0}
+ .project-grid:not(.style-examples-grid),.service-related-work .project-grid{grid-template-columns:minmax(0,1fr)!important;gap:34px 0!important}
+ .project-grid:not(.style-examples-grid) .project-image,.project-grid:not(.style-examples-grid) .project-card:nth-child(n) .project-image{height:clamp(250px,76vw,390px)!important}
+ .service-related-work .project-grid .project-image{height:clamp(250px,76vw,390px)!important}
+ .identity-concept-grid,.identity-scope-grid{grid-template-columns:minmax(0,1fr)!important}
+ .identity-hero,.identity-intro,.identity-output{grid-template-columns:minmax(0,1fr)!important}
+ .identity-hero-board,.identity-output-sheet,.identity-concept-card,.service-detail,.order-section{min-width:0;max-width:100%}
+ .identity-concept-meta{flex-wrap:wrap}
+}

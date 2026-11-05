@@ -114,6 +114,28 @@ test('order form reports delivery errors without marking the inquiry as sent', a
   await expect(page.getByRole('status')).not.toContainText('Сервис подтвердил приём заявки.')
 })
 
+test('order budget and timeline selectors use requested ruble amounts and durations', async ({page}) => {
+  await page.goto('/#/order',{waitUntil:'domcontentloaded'})
+  const budget=page.locator('select[name="budget"]')
+  await expect(budget.locator('option')).toHaveText(['Выберите диапазон','От 1 000 ₽ — простая задача','5 000–10 000 ₽ — базовый объём','10 000–20 000 ₽ — расширенный объём','20 000–30 000 ₽ — сложная разработка','Более 30 000 ₽ — крупный или сложный проект'])
+  const timeline=page.locator('select[name="timeline"]')
+  await expect(timeline.locator('option')).toHaveText(['Выберите сроки','1 день','5 дней','1 неделя','1 месяц','3 месяца','Более 3 месяцев — крупный или сложный проект','Сроки обсудим после брифа'])
+})
+
+test('failed delivery exposes a prepared email fallback', async ({page}) => {
+  await page.route('https://formsubmit.co/ajax/sviroxk@gmail.com',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({success:'false',message:'unavailable'})}))
+  await page.goto('/#/order',{waitUntil:'domcontentloaded'})
+  await page.getByLabel('ИМЯ ИЛИ НАЗВАНИЕ КОМПАНИИ').fill('Тестовый посетитель')
+  await page.getByLabel('КОНТАКТ ДЛЯ ОТВЕТА').fill('visitor@example.com')
+  await page.getByLabel('ТИП ПРОЕКТА').selectOption({label:'Лендинг'})
+  await page.getByLabel('ОПИСАНИЕ ЗАДАЧИ').fill('Проверка резервного письма при отказе endpoint.')
+  await page.getByRole('checkbox',{name:/Я прочитал\(а\) и принимаю/}).check()
+  await page.waitForTimeout(2600)
+  await page.getByRole('button',{name:/Отправить запрос/}).click()
+  await expect(page.getByRole('status')).toContainText('Можно открыть подготовленное письмо')
+  await expect(page.getByRole('link',{name:/Открыть подготовленное письмо/})).toHaveAttribute('href',/^mailto:sviroxk@gmail\.com\?subject=/)
+})
+
 test('legal pages show current studio contact and have no draft placeholders', async ({page}) => {
   await page.goto('/#/privacy',{waitUntil:'domcontentloaded'})
   await expect(page.locator('.legal-page')).toContainText('sviroxk@gmail.com')
@@ -266,6 +288,19 @@ test('style portfolio examples use a full-width layout when only one related con
   const mobile=await grid.evaluate(el=>({gridWidth:el.getBoundingClientRect().width,cardWidth:el.querySelector('.project-card')!.getBoundingClientRect().width,viewport:document.documentElement.clientWidth}))
   expect(mobile.cardWidth).toBeGreaterThan(mobile.gridWidth*.85)
   expect(mobile.gridWidth).toBeLessThanOrEqual(mobile.viewport)
+})
+
+test('phone project galleries stack as one column', async ({page}) => {
+  await page.setViewportSize({width:390,height:844})
+  for(const route of ['/work','/styles/cyberpunk','/services/identity']){
+    await page.goto(`/#${route}`,{waitUntil:'domcontentloaded'})
+    const grids=page.locator('.project-grid').filter({has:page.locator('.project-card')})
+    for(let i=0;i<await grids.count();i++){
+      const columns=await grids.nth(i).evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)
+      expect(columns,`${route} project grid ${i} should stack on mobile`).toBe(1)
+    }
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),`${route} no horizontal overflow`).toBeTruthy()
+  }
 })
 
 test('viewport smoke matrix has no horizontal overflow and nav remains usable', async ({page}) => {
